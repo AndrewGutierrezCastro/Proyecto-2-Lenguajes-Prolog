@@ -11,7 +11,7 @@
         {
             "label": "buildProlog",
             "type": "shell",
-            "command": "swipl -f HW.pl",
+            "command": "swipl -f Puente.pl",
             "problemMatcher": [],
             "group": {
                 "kind": "build",
