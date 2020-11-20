@@ -68,15 +68,81 @@ test_hill_climb(Problem,Moves) :-
    solve_hill_climb(State,[State],Moves).  % inicia resoluci�n desde Estado
 
 
-initial_state(zgm,zgm(izq,[zorra,gallina,maiz],[])).
 
-final_state(zgm(der,[],[zorra,gallina,maiz])).
+% === Relaciones que definen el problema zgm     === %
+% === Son las mismas incluidas en depth-first.pl === %
 
-update(zgm(B,I,D),Carga,zgm(B1,I1,D1)).
-    /*:-
-    update_Bote(B,B1),
-    update_margenes(Carga,B,I,D,I1,D1).*/
-value(zgm(_,_,[]),0).
-value(zgm(_,_,[_]),1).
-value(zgm(_,_,[_,_]),2).
-value(zgm(_,_,[_,_,_]),3).
+initial_state(pnt,pnt(izq,[alberto,beatriz,carlos,dora,emilio],[])).
+
+final_state(pnt(der,[],[alberto,beatriz,carlos,dora,emilio])).
+
+move(pnt(izq,I,_),Carga):-member(Carga,I).
+move(pnt(der,_,D),Carga):-member(Carga,D).
+move(pnt(_,_,_),solo).
+
+update(pnt(B,I,D),Carga,pnt(B1,I1,D1)):-
+update_Bote(B,B1),
+update_margenes(Carga,B,I,D,I1,D1, personas_a_la_vez, 0).
+
+update_Bote(izq,der).
+update_Bote(der,izq).
+
+update_margenes(solo,_,I,D,I,D,_,_).
+
+update_margenes(Carga,izq,I,D,I1,D1,N,M):-
+    M < N,
+    select(Carga,I,I1),
+    insert(Carga,D,D1),
+    update_margenes(Carga,izq,I,D,I1,D1,N,M+1).
+
+update_margenes(Carga,der,I,D,I1,D1,N,M):-
+    M < N,
+    select(Carga,D,D1),
+    insert(Carga,I,I1),
+    update_margenes(Carga,der,I,D,I1,D1,N,M+1).
+
+insert(X,[Y|Ys],[X,Y|Ys]):-precedes(X,Y).
+insert(X,[Y|Ys],[Y|Zs]):-precedes(Y,X),insert(X,Ys,Zs).
+insert(X,[],[X]).
+
+select(X,[X|Xs],Xs).
+select(X,[Y|Ys],[Y|Zs]):-select(X,Ys,Zs).
+
+% Caso no determin�stico
+% precedes(zorra,_).
+% precedes(_,maiz).
+
+% Caso determin�stico
+precedes(X, Y):- 
+    persona(X, V),
+    persona(Y, V1),
+    V =< V1,
+    X \= Y.
+
+
+legal(pnt(izq,_,D)):-not(ilegal(D)).
+legal(pnt(der,I,_)):-not(ilegal(I)).
+
+ilegal(L):-member(zorra,L),member(gallina,L).
+ilegal(L):-member(gallina,L),member(maiz,L).
+
+% === Fin de las relaciones usadas por depth-first.pl ==%
+
+% === Relaci�n adicional requerida por hill-climb para resolver zgm. === %
+% === Value/2 es una heur�sica que da valores m�s altos conforme     === %
+% === haya m�s cosas en la rivera derecha.                           === %
+
+value(pnt(_,_,[]),0).
+value(pnt(_,_,[_]),1).
+value(pnt(_,_,[_,_]),2).
+value(pnt(_,_,[_,_,_]),3).
+value(pnt(_,_,[_,_,_,_]),4).
+value(pnt(_,_,[_,_,_,_,_]),5).
+
+persona(alberto, 1).
+persona(beatriz, 2).
+persona(carlos, 5).
+persona(dora, 10).
+persona(emilio, 15).
+
+personas_a_la_vez(2).
