@@ -148,15 +148,16 @@ persona(emilio, 15).
 personas_a_la_vez(2).
 
 personaRapida(X, [X|XS], Y):-
-    max(X,Y, V2).
+    min(X,Y, V2).
 
-max(X,Y,V2):-
+min(X,Y,V2):-
     persona(X,X1),
-    persona(Y, Y1),
+    persona(Y,Y1),
     X1 >= Y1,
-    V2 = X.
-max(X,Y,V2):-
+    V2 = Y.
+
+min(X,Y,V2):-
     persona(X,X1),
-    persona(Y, Y1),
+    persona(Y,Y1),
     X1 < Y1,
     V2 = X.
