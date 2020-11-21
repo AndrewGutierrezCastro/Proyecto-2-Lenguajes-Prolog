@@ -164,6 +164,7 @@ persona(emilio, 15).
 
 personas_a_la_vez(2).
 
+/*Selecciona de la lista las persona mas rapida en cruzarlo*/
 personaRapida(X, [X|XS], Y):-
     min(X,Y, V2).
 /*Selecciona la persona con el minimo tiempo de 
@@ -202,14 +203,6 @@ selectMax(P,[X]):-
 
 /*Selecciona las n personas mas lentas de la lista X de perosnas*/
 npersonas_mas_lentas(N,[],A,R).
-
-npersonas_mas_lentas(N,X,[],R):-
-    N > 0,
-    selectMax(P,X),   %seleccionar la personas con max duracion
-    select(P, X, L),  %quitar esa persona de la lista, L es la nueva lista sin el elemento P
-    A1 = [P], %R1 es la lista R con el valor P insertado
-    N1 is N - 1, 
-    npersonas_mas_lentas(N1, L, A1, R).
 
 npersonas_mas_lentas(N,X,A,R):-
     N > 0,
