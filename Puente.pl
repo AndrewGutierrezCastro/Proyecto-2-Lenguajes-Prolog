@@ -91,22 +91,39 @@ update_margenes(solo,_,I,D,I,D,_,_).
 
 update_margenes(Carga,izq,I,D,I1,D1,N,M):-
     M < N,
+    M1 is M + 1,
     select(Carga,I,I1),
     insert(Carga,D,D1),
-    update_margenes(Carga,izq,I,D,I1,D1,N,M+1).
+    update_margenes(Carga,izq,I,D,I1,D1,N,M1).
 
 update_margenes(Carga,der,I,D,I1,D1,N,M):-
     M < N,
+    M1 is M + 1,
     select(Carga,D,D1),
     insert(Carga,I,I1),
-    update_margenes(Carga,der,I,D,I1,D1,N,M+1).
+    update_margenes(Carga,der,I,D,I1,D1,N,M1).
 
-insert(X,[Y|Ys],[X,Y|Ys]):-precedes(X,Y).
-insert(X,[Y|Ys],[Y|Zs]):-precedes(Y,X),insert(X,Ys,Zs).
-insert(X,[],[X]).
+/*
+ * insert(ElementoInsertado, ListaVieja, ListaNueva)
+ *
+ * Inserta en orden una de las cosas en una lista.
+ * La relaci�n precedes/2 establece el orden de las cosas: z < g < m.
+ */
+insert(X,[Y|Ys],[X,Y|Ys]):-precedes(X,Y).   % Elemento va al inicio
+insert(X,[Y|Ys],[Y|Zs]):-precedes(Y,X),insert(X,Ys,Zs).  % Insertar m�s adentro.
+insert(X,[],[X]).                           % Insertar como �nico elemento.
 
-select(X,[X|Xs],Xs).
-select(X,[Y|Ys],[Y|Zs]):-select(X,Ys,Zs).
+
+/*
+ * select(Elemento, ListaQueContieneElemento, ListaSinElemento)
+ *
+ * Extrae no determisticamente un elemento de una lista que lo contiene
+ * y obtiene la lista sin ese elemento.
+ */
+select(X,[X|Xs],Xs).                          % Extrae primer elemento.
+select(X,[Y|Ys],[Y|Zs]):-select(X,Ys,Zs).     % Extrae elemento de m�s adentro.
+
+
 
 % Caso no determin�stico
 % precedes(zorra,_).
@@ -149,7 +166,8 @@ personas_a_la_vez(2).
 
 personaRapida(X, [X|XS], Y):-
     min(X,Y, V2).
-
+/*Selecciona la persona con el minimo tiempo de 
+    cruce del puente*/
 min(X,Y,V2):-
     persona(X,X1),
     persona(Y,Y1),
@@ -161,3 +179,44 @@ min(X,Y,V2):-
     persona(Y,Y1),
     X1 < Y1,
     V2 = X.
+
+max(X,Y,V2):-
+    persona(X,X1),
+    persona(Y,Y1),
+    X1 >= Y1,
+    V2 = X.
+
+max(X,Y,V2):-
+    persona(X,X1),
+    persona(Y,Y1),
+    X1 < Y1,
+    V2 = Y.
+
+
+/*Selecciona el maximo de una lista de personas*/
+selectMax(P,[X|XS]):-
+    selectMax(P1, XS),
+    max(X,P1,P).
+selectMax(P,[X]):-
+    P = X.
+
+/*Selecciona las n personas mas lentas de la lista X de perosnas*/
+npersonas_mas_lentas(N,[],A,R).
+
+npersonas_mas_lentas(N,X,[],R):-
+    N > 0,
+    selectMax(P,X),   %seleccionar la personas con max duracion
+    select(P, X, L),  %quitar esa persona de la lista, L es la nueva lista sin el elemento P
+    A1 = [P], %R1 es la lista R con el valor P insertado
+    N1 is N - 1, 
+    npersonas_mas_lentas(N1, L, A1, R).
+
+npersonas_mas_lentas(N,X,A,R):-
+    N > 0,
+    selectMax(P,X),   %seleccionar la personas con max duracion
+    select(P, X, L),  %quitar esa persona de la lista, L es la nueva lista sin el elemento P
+    insert(P, A, A1), %R1 es la lista R con el valor P insertado
+    N1 is N - 1, 
+    npersonas_mas_lentas(N1, L, A1, R).
+
+npersonas_mas_lentas(_,_,R,R).
