@@ -81,11 +81,11 @@ move(pnt(der,_,D),Carga):-member(Carga,D).
 move(pnt(_,_,_),solo).
 
 update(pnt(B,I,D),Carga,pnt(B1,I1,D1)):-
-update_Bote(B,B1),
+update_LadoPersona(B,B1),
 update_margenes(Carga,B,I,D,I1,D1, personas_a_la_vez, 0).
 
-update_Bote(izq,der).
-update_Bote(der,izq).
+update_LadoPersona(izq,der).
+update_LadoPersona(der,izq).
 
 update_margenes(solo,_,I,D,I,D,_,_).
 
@@ -165,8 +165,11 @@ persona(emilio, 15).
 personas_a_la_vez(2).
 
 /*Selecciona de la lista las persona mas rapida en cruzarlo*/
-personaRapida(X, [X|XS], Y):-
-    min(X,Y, V2).
+personaRapida(R, [X|XS]):-
+    min(X,Y, R),
+    personaRapida(Y, XS).
+personaRapida(P,[X]):-
+    P = X.
 /*Selecciona la persona con el minimo tiempo de 
     cruce del puente*/
 min(X,Y,V2):-
@@ -196,8 +199,8 @@ max(X,Y,V2):-
 
 /*Selecciona el maximo de una lista de personas*/
 selectMax(P,[X|XS]):-
-    selectMax(P1, XS),
     max(X,P1,P).
+    selectMax(P1, XS).
 selectMax(P,[X]):-
     P = X.
 
