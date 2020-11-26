@@ -78,51 +78,30 @@ final_state(pnt(der,[],[alberto,beatriz,carlos,dora,emilio])).
 
 move(pnt(izq,I,_),Carga):-member(Carga,I).
 move(pnt(der,_,D),Carga):-member(Carga,D).
-move(pnt(_,_,_),solo).
+%move(pnt(_,_,_),solo).
 
 update(pnt(B,I,D),Carga,pnt(B1,I1,D1)):-
-update_LadoPersona(B,B1),
-update_margenes(Carga,B,I,D,I1,D1, personas_a_la_vez, 0).
+    update_LadoPersona(B,B1),
+    update_margenes(Carga,B,I,D,I1,D1, personas_a_la_vez, 0).
 
 update_LadoPersona(izq,der).
 update_LadoPersona(der,izq).
 
-update_margenes(solo,_,I,D,I,D,_,_).
+%update_margenes(solo,_,I,D,I,D,_,_).
 
-update_margenes(Carga,izq,I,D,I1,D1,N,M):-
-    M < N,
-    M1 is M + 1,
+update_margenes(Carga,izq,I,D,I1,D1):-
     select(Carga,I,I1),
-    insert(Carga,D,D1),
-    update_margenes(Carga,izq,I,D,I1,D1,N,M1).
+    insert(Carga,D,D1).
 
-update_margenes(Carga,der,I,D,I1,D1,N,M):-
-    M < N,
-    M1 is M + 1,
+update_margenes(Carga,der,I,D,I1,D1):-
     select(Carga,D,D1),
-    insert(Carga,I,I1),
-    update_margenes(Carga,der,I,D,I1,D1,N,M1).
+    insert(Carga,I,I1).
 
-/*
- * insert(ElementoInsertado, ListaVieja, ListaNueva)
- *
- * Inserta en orden una de las cosas en una lista.
- * La relaci�n precedes/2 establece el orden de las cosas: z < g < m.
- */
-insert(X,[Y|Ys],[X,Y|Ys]):-precedes(X,Y).   % Elemento va al inicio
-insert(X,[Y|Ys],[Y|Zs]):-precedes(Y,X),insert(X,Ys,Zs).  % Insertar m�s adentro.
-insert(X,[],[X]).                           % Insertar como �nico elemento.
+legal(pnt(izq,_,D)):-not(ilegal(D)).
+legal(pnt(der,I,_)):-not(ilegal(I)).
 
-
-/*
- * select(Elemento, ListaQueContieneElemento, ListaSinElemento)
- *
- * Extrae no determisticamente un elemento de una lista que lo contiene
- * y obtiene la lista sin ese elemento.
- */
-select(X,[X|Xs],Xs).                          % Extrae primer elemento.
-select(X,[Y|Ys],[Y|Zs]):-select(X,Ys,Zs).     % Extrae elemento de m�s adentro.
-
+ilegal(L):-member(zorra,L),member(gallina,L).
+ilegal(L):-member(gallina,L),member(maiz,L).
 
 
 % Caso no determin�stico
@@ -137,11 +116,7 @@ precedes(X, Y):-
     X \= Y.
 
 
-legal(pnt(izq,_,D)):-not(ilegal(D)).
-legal(pnt(der,I,_)):-not(ilegal(I)).
 
-ilegal(L):-member(zorra,L),member(gallina,L).
-ilegal(L):-member(gallina,L),member(maiz,L).
 
 % === Fin de las relaciones usadas por depth-first.pl ==%
 
@@ -163,7 +138,7 @@ persona(dora, 10).
 persona(emilio, 15).
 
 personas_a_la_vez(2).
-
+listaPersonas([alberto,beatriz,carlos,dora,emilio]).
 /*Selecciona de la lista las persona mas rapida en cruzarlo*/
 personaRapida(R, [X|XS]):-
     min(X,Y, R),
@@ -199,14 +174,18 @@ max(X,Y,V2):-
 
 /*Selecciona el maximo de una lista de personas*/
 selectMax(P,[X|XS]):-
-    max(X,P1,P).
+    max(X,P1,P),
     selectMax(P1, XS).
 selectMax(P,[X]):-
     P = X.
 
 /*Selecciona las n personas mas lentas de la lista X de perosnas*/
-npersonas_mas_lentas(N,[],A,R).
-
+% npersonas_mas_lentas(2,[alberto,beatriz,carlos,dora,emilio],[],R).
+npersonas_mas_lentas(LISTA,RESTO,RESULTADO):-
+    personas_a_la_vez(N),
+    N1 is N - 1,
+    npersonas_mas_lentas(N1,LISTA,[],RESULTADO),
+    selectList(LISTA,RESULTADO,RESTO).
 npersonas_mas_lentas(N,X,A,R):-
     N > 0,
     selectMax(P,X),   %seleccionar la personas con max duracion
@@ -215,4 +194,36 @@ npersonas_mas_lentas(N,X,A,R):-
     N1 is N - 1, 
     npersonas_mas_lentas(N1, L, A1, R).
 
+npersonas_mas_lentas(0,[],A,A).
 npersonas_mas_lentas(_,_,R,R).
+
+
+/*
+ * insert(ElementoInsertado, ListaVieja, ListaNueva)
+ *
+ * Inserta en orden una de las cosas en una lista.
+ * La relaci�n precedes/2 establece el orden de las cosas: z < g < m.
+ */
+insert(X,[Y|Ys],[X,Y|Ys]):-precedes(X,Y).   % Elemento va al inicio
+insert(X,[Y|Ys],[Y|Zs]):-precedes(Y,X),insert(X,Ys,Zs).  % Insertar m�s adentro.
+insert(X,[],[X]).                   % Insertar como �nico elemento.
+
+/*
+ * select(Elemento, ListaQueContieneElemento, ListaSinElemento)
+ *
+ * Extrae no determisticamente un elemento de una lista que lo contiene
+ * y obtiene la lista sin ese elemento.
+ */
+select(X,[X|Xs],Xs).                          % Extrae primer elemento.
+select(X,[Y|Ys],[Y|Zs]):-select(X,Ys,Zs).     % Extrae elemento de m�s adentro.
+
+selectList(LISTA,[X|XS],R):-    %LISTA DONDE SE VAN A EXTRAER
+    select(X, LISTA, RESTO),     %X|XS ES LA LISTA DE ELEMENTOS A EXTRAER
+    selectList(RESTO, XS, R).
+
+selectList(R,[],R).
+
+por_mis_huevos(estado(izq,LstIzq,LstDer)):-
+    movimiento(AMOVER, LstIzq),
+    realizarMovimiento(AMOVER),
+    cruzarPuente().
