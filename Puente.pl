@@ -82,7 +82,7 @@ move(pnt(der,_,D),Carga):-member(Carga,D).
 
 update(pnt(B,I,D),Carga,pnt(B1,I1,D1)):-
     update_LadoPersona(B,B1),
-    update_margenes(Carga,B,I,D,I1,D1, personas_a_la_vez, 0).
+    update_margenes(Carga,B,I,D,I1,D1).
 
 update_LadoPersona(izq,der).
 update_LadoPersona(der,izq).
@@ -102,20 +102,6 @@ legal(pnt(der,I,_)):-not(ilegal(I)).
 
 ilegal(L):-member(zorra,L),member(gallina,L).
 ilegal(L):-member(gallina,L),member(maiz,L).
-
-
-% Caso no determin�stico
-% precedes(zorra,_).
-% precedes(_,maiz).
-
-% Caso determin�stico
-precedes(X, Y):- 
-    persona(X, V),
-    persona(Y, V1),
-    V =< V1,
-    X \= Y.
-
-
 
 
 % === Fin de las relaciones usadas por depth-first.pl ==%
@@ -208,6 +194,15 @@ insert(X,[Y|Ys],[X,Y|Ys]):-precedes(X,Y).   % Elemento va al inicio
 insert(X,[Y|Ys],[Y|Zs]):-precedes(Y,X),insert(X,Ys,Zs).  % Insertar m�s adentro.
 insert(X,[],[X]).                   % Insertar como �nico elemento.
 
+
+
+% Caso determin�stico
+precedes(X, Y):- 
+    persona(X, V),
+    persona(Y, V1),
+    V =< V1,
+    X \= Y.
+
 /*
  * select(Elemento, ListaQueContieneElemento, ListaSinElemento)
  *
@@ -223,7 +218,34 @@ selectList(LISTA,[X|XS],R):-    %LISTA DONDE SE VAN A EXTRAER
 
 selectList(R,[],R).
 
-por_mis_huevos(estado(izq,LstIzq,LstDer)):-
-    movimiento(AMOVER, LstIzq),
-    realizarMovimiento(AMOVER),
-    cruzarPuente().
+insertList([A|MOVER], LISTA, RESULTADO):-
+    insert(A, LISTA, RESULTADO1),
+    insertList(MOVER, RESULTADO1, RESULTADO).
+
+insertList([], RESULTADO, RESULTADO).
+
+por_mis_huevos(estado(LADO,LstIzq,LstDer)):-
+    generar_movimiento(AMOVER, estado(LADO,LstIzq,LstDer)), %AMOVER es la lista de lo que voy a mover tomado de la lista izq
+    realizarMovimiento(AMOVER, estado(LADO,LstIzq,LstDer),NEWESTADO), %hace el movimiento 
+    cruzarPuente(estado(LADO,LstIzq,LstDer)).
+
+generar_movimiento(AMOVER, estado(izq,LstIzq,LstDer)):-%Devolver en AMOVER la lista de 
+    npersonas_mas_lentas(LstIzq, RESTO, AMOVER).%elementos a mover de la lista lstIzq
+
+generar_movimiento(AMOVER, estado(der,LstIzq,LstDer)).%Devolver en AMOVER la lista de 
+    npersonas_mas_lentas(LstDer, RESTO, AMOVER).%elementos a mover de la lista LstDer
+
+realizarMovimiento(AMOVER, estado(izq, LstIzq, LstDer),NEWESTADO):-
+    selectList(LstIzq,AMOVER,LstIzqRESTO),
+    insertList(AMOVER,LstDer,LstDerRESULTADO),
+    NEWESTADO = estado(izq, LstIzqRESTO, LstDerRESULTADO).
+
+realizarMovimiento(AMOVER, estado(der, LstIzq, LstDer),NEWESTADO):-
+    selectList(LstDer,AMOVER,LstDerRESTO),
+    insertList(AMOVER,LstIzq, LstIzqRESULTADO),
+    NEWESTADO = estado(der, LstIzqRESULTADO, LstDerRESULTADO).
+
+cruzarPuente(estado(izq,_,_)).
+
+cruzarPuente(estado(der,_,_)).
+ 
