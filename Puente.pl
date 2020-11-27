@@ -224,14 +224,21 @@ insertList([A|MOVER], LISTA, RESULTADO):-
 
 insertList([], RESULTADO, RESULTADO).
 
-por_mis_huevos(estado(der,[],[Lst|Der]), RESULTADO):-
-    RESULTADO = estado(der,[],[Lst|Der]).
+por_mis_huevos_mas_grandes(Historial):-
+    listaPersonas(L),
+    R=[],
+    ESTADO = estado(izq, L, R), 
+    por_mis_huevos(ESTADO,[(L,R)],Historial).
 
-por_mis_huevos(estado(LADO,LstIzq,LstDer),RESULTADO):-
+por_mis_huevos(estado(der,[],[Lst|Der]), ACUMULADOR, RESULTADO):-
+    reverse(ACUMULADOR,RESULTADO).
+
+por_mis_huevos(estado(LADO,LstIzq,LstDer),ACUMULADOR, HIS):-
     generar_movimiento(AMOVER, estado(LADO,LstIzq,LstDer)), %AMOVER es la lista de lo que voy a mover tomado de la lista izq
     realizarMovimiento(AMOVER, estado(LADO,LstIzq,LstDer),ESTADO2), %hace el movimiento 
     cruzarPuente(ESTADO2, ESTADO3),
-    por_mis_huevos(ESTADO3,RESULTADO).
+    ESTADO3 = estado(_,L,R),
+    por_mis_huevos(ESTADO3, [(L,R)|ACUMULADOR], HIS).
 
 
 
