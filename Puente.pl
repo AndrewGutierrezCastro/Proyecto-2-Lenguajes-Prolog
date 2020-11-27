@@ -224,16 +224,25 @@ insertList([A|MOVER], LISTA, RESULTADO):-
 
 insertList([], RESULTADO, RESULTADO).
 
-por_mis_huevos(estado(LADO,LstIzq,LstDer)):-
+por_mis_huevos(estado(der,[],[Lst|Der]), RESULTADO):-
+    RESULTADO = estado(der,[],[Lst|Der]).
+
+por_mis_huevos(estado(LADO,LstIzq,LstDer),RESULTADO):-
     generar_movimiento(AMOVER, estado(LADO,LstIzq,LstDer)), %AMOVER es la lista de lo que voy a mover tomado de la lista izq
-    realizarMovimiento(AMOVER, estado(LADO,LstIzq,LstDer),NEWESTADO), %hace el movimiento 
-    cruzarPuente(estado(LADO,LstIzq,LstDer)).
+    realizarMovimiento(AMOVER, estado(LADO,LstIzq,LstDer),ESTADO2), %hace el movimiento 
+    cruzarPuente(ESTADO2, ESTADO3),
+    por_mis_huevos(ESTADO3,RESULTADO).
 
-generar_movimiento(AMOVER, estado(izq,LstIzq,LstDer)):-%Devolver en AMOVER la lista de 
-    npersonas_mas_lentas(LstIzq, RESTO, AMOVER).%elementos a mover de la lista lstIzq
 
-generar_movimiento(AMOVER, estado(der,LstIzq,LstDer)).%Devolver en AMOVER la lista de 
-    npersonas_mas_lentas(LstDer, RESTO, AMOVER).%elementos a mover de la lista LstDer
+
+generar_movimiento(AMOVER, estado(izq,LstIzq,LstDer)):-     %Devolver en AMOVER la lista de 
+    personaRapida(A, LstIzq),
+    npersonas_mas_lentas(LstIzq, RESTO, MOVER),
+    AMOVER = [A|MOVER].                                      %elementos a mover de la lista lstIzq
+
+generar_movimiento(AMOVER, estado(der,LstIzq,LstDer)):-     %Devolver en AMOVER la lista de 
+    personaRapida(A, LstDer),
+    AMOVER = [A].                                           %elementos a mover de la lista LstDer
 
 realizarMovimiento(AMOVER, estado(izq, LstIzq, LstDer),NEWESTADO):-
     selectList(LstIzq,AMOVER,LstIzqRESTO),
@@ -243,9 +252,10 @@ realizarMovimiento(AMOVER, estado(izq, LstIzq, LstDer),NEWESTADO):-
 realizarMovimiento(AMOVER, estado(der, LstIzq, LstDer),NEWESTADO):-
     selectList(LstDer,AMOVER,LstDerRESTO),
     insertList(AMOVER,LstIzq, LstIzqRESULTADO),
-    NEWESTADO = estado(der, LstIzqRESULTADO, LstDerRESULTADO).
+    NEWESTADO = estado(der, LstIzqRESULTADO, LstDerRESTO).
 
-cruzarPuente(estado(izq,_,_)).
-
-cruzarPuente(estado(der,_,_)).
+cruzarPuente(estado(izq,LstIzq,LstDer), ESTADO2):-
+    ESTADO2 = estado(der, LstIzq, LstDer).
+cruzarPuente(estado(der,LstIzq,LstDer), ESTADO2):-
+    ESTADO2 = estado(izq, LstIzq, LstDer).
  
