@@ -191,13 +191,8 @@ npersonas_mas_lentas(N,LISTA,Acumulada,R):-
 
 
 selectPersonas(AMOVER, LISTA):-
-    selectPersonas(AMOVER, LISTA,[]).
-
-selectPersonas(AMOVER, LISTA, Historia):-
     personas_a_la_vez(N),
-    selectPersonas(N, LISTA, [], AMOVER),
-    not(member(Acumulada1, Historia)),%Revisar si existe la combinacion
-    insert(Acumulada1, Historia, Historia1).
+    selectPersonas(N, LISTA, [], AMOVER).
 
 selectPersonas(N, LISTA, Acumulada, Respuesta):-
     N > 0,
@@ -289,7 +284,10 @@ generar_movimiento(AMOVER, estado(izq,LstIzq,LstDer)):-     %Devolver en AMOVER 
     npersonas_mas_lentas(LstIzq, RESTO, MOVER),
     AMOVER = [A|MOVER].                                      %elementos a mover de la lista lstIzq                                   %elementos a mover de la lista LstDer
 
-generar_movimiento(AMOVER, estado(izq,LstIzq,LstDer)).
+generar_movimiento(X ,AMOVER, estado(izq,LstIzq,LstDer)):-
+    findall(MOVIDAS, selectPersonas(MOVIDAS, LstIzq), SOLREPS),
+    sort(SOLREPS,SOLsinREP),
+    member(AMOVER, SOLsinREP).
 
 
 realizarMovimiento(AMOVER, estado(izq, LstIzq, LstDer),NEWESTADO):-
