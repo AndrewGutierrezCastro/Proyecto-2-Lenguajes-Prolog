@@ -255,6 +255,7 @@ solucion_puente(estado(der,[],[Lst|Der]), ACUMULADOR, RESULTADO):-
     reverse(ACUMULADOR,RESULTADO).
 
 solucion_puente(estado(LADO,LstIzq,LstDer),ACUMULADOR, HIS):-
+    LstIzq \= [],
     generar_movimiento(AMOVER, estado(LADO,LstIzq,LstDer)), %AMOVER es la lista de lo que voy a mover tomado de la lista izq
     realizarMovimiento(AMOVER, estado(LADO,LstIzq,LstDer),ESTADO2), %hace el movimiento 
     cruzarPuente(ESTADO2, ESTADO3),
@@ -278,16 +279,25 @@ generar_movimiento(AMOVER, estado(izq,LstIzq,LstDer)):-     %Devolver en AMOVER 
     personas_a_la_vez(N),              
     npersonas_lentas(N ,LstIzq, RESTO, AMOVER).            %elementos a mover de la lista lstIzq
 
-
+/* 
 generar_movimiento(AMOVER, estado(izq,LstIzq,LstDer)):-     %Devolver en AMOVER la lista de individuos a cruzar
     personaRapida(A, LstIzq),                               %
     npersonas_mas_lentas(LstIzq, RESTO, MOVER),
-    AMOVER = [A|MOVER].                                      %elementos a mover de la lista lstIzq                                   %elementos a mover de la lista LstDer
+    AMOVER = [A|MOVER].   */                                    %elementos a mover de la lista lstIzq                                   %elementos a mover de la lista LstDer
 
-generar_movimiento(X ,AMOVER, estado(izq,LstIzq,LstDer)):-
+/* generar_movimiento(AMOVER, estado(izq,LstIzq,LstDer)):-
+    length(LstIzq, LstLength),
+    LstLength > 2,
+    select(PersonaRapida, LstIzq, LstIzqNueva),
+    findall(MOVIDAS, selectPersonas(MOVIDAS, LstIzqNueva), SOLREPS),
+    sort(SOLREPS,SOLsinREP),
+    member(AMOVER, SOLsinREP). */
+
+generar_movimiento(AMOVER, estado(izq,LstIzq,LstDer)):-
     findall(MOVIDAS, selectPersonas(MOVIDAS, LstIzq), SOLREPS),
     sort(SOLREPS,SOLsinREP),
     member(AMOVER, SOLsinREP).
+
 
 
 realizarMovimiento(AMOVER, estado(izq, LstIzq, LstDer),NEWESTADO):-
