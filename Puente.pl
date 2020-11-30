@@ -124,7 +124,7 @@ persona(dora, 10).
 persona(emilio, 15).
 
 personas_a_la_vez(2).
-listaPersonas([alberto,beatriz,carlos,dora,emilio]).
+listaPersonas([alberto,beatriz,carlos]).
 /*Selecciona de la lista las persona mas rapida en cruzarlo*/
 personaRapida(R, [X|XS]):-
     min(X,Y, R),
@@ -172,18 +172,43 @@ npersonas_mas_lentas(LISTA,RESTO,RESULTADO):-
     N1 is N - 1,
     npersonas_mas_lentas(N1,LISTA,[],RESULTADO),
     selectList(LISTA,RESULTADO,RESTO).
-npersonas_mas_lentas(N,X,A,R):-
+
+npersonas_lentas(N,LISTA,RESTO,RESULTADO):-
+    npersonas_mas_lentas(N,LISTA,[],RESULTADO),
+    selectList(LISTA,RESULTADO,RESTO).
+
+npersonas_mas_lentas(0,_,A,A).
+
+npersonas_mas_lentas(_,[],A,A).
+
+npersonas_mas_lentas(N,LISTA,Acumulada,R):-
     N > 0,
-    selectMax(P,X),   %seleccionar la personas con max duracion
-    select(P, X, L),  %quitar esa persona de la lista, L es la nueva lista sin el elemento P
-    insert(P, A, A1), %R1 es la lista R con el valor P insertado
+    selectMax(Persona,LISTA),   %seleccionar la personas con max duracion
+    select(Persona, LISTA, L),  %quitar esa persona de la lista, L es la nueva lista sin el elemento P
+    insert(Persona, Acumulada, Acumulada1), %R1 es la lista R con el valor P insertado
     N1 is N - 1, 
-    npersonas_mas_lentas(N1, L, A1, R).
-
-npersonas_mas_lentas(0,[],A,A).
-npersonas_mas_lentas(_,_,R,R).
+    npersonas_mas_lentas(N1, L, Acumulada1, R).
 
 
+selectPersonas(AMOVER, LISTA):-
+    selectPersonas(AMOVER, LISTA,[]).
+
+selectPersonas(AMOVER, LISTA, Historia):-
+    personas_a_la_vez(N),
+    selectPersonas(N, LISTA, [], AMOVER),
+    not(member(Acumulada1, Historia)),%Revisar si existe la combinacion
+    insert(Acumulada1, Historia, Historia1).
+
+selectPersonas(N, LISTA, Acumulada, Respuesta):-
+    N > 0,
+    N1 is N - 1,
+    member(Persona,LISTA),
+    select(Persona, LISTA, L),  %quitar esa persona de la lista, L es la nueva lista sin el elemento P
+    insert(Persona, Acumulada, Acumulada1), %R1 es la lista R con el valor P insertado
+    selectPersonas(N1, L, Acumulada1, Respuesta).
+
+selectPersonas(0,_,R,R).
+selectPersonas(_,[],R,R).
 /*
  * insert(ElementoInsertado, ListaVieja, ListaNueva)
  *
@@ -224,32 +249,48 @@ insertList([A|MOVER], LISTA, RESULTADO):-
 
 insertList([], RESULTADO, RESULTADO).
 
-por_mis_huevos_mas_grandes(Historial):-
+
+problema_puente_solucion(Historial):-
     listaPersonas(L),
     R=[],
     ESTADO = estado(izq, L, R), 
-    por_mis_huevos(ESTADO,[(L,R)],Historial).
+    solucion_puente(ESTADO,[ESTADO],Historial).
 
-por_mis_huevos(estado(der,[],[Lst|Der]), ACUMULADOR, RESULTADO):-
+solucion_puente(estado(der,[],[Lst|Der]), ACUMULADOR, RESULTADO):-
     reverse(ACUMULADOR,RESULTADO).
 
-por_mis_huevos(estado(LADO,LstIzq,LstDer),ACUMULADOR, HIS):-
+solucion_puente(estado(LADO,LstIzq,LstDer),ACUMULADOR, HIS):-
     generar_movimiento(AMOVER, estado(LADO,LstIzq,LstDer)), %AMOVER es la lista de lo que voy a mover tomado de la lista izq
     realizarMovimiento(AMOVER, estado(LADO,LstIzq,LstDer),ESTADO2), %hace el movimiento 
     cruzarPuente(ESTADO2, ESTADO3),
     ESTADO3 = estado(_,L,R),
-    por_mis_huevos(ESTADO3, [(L,R)|ACUMULADOR], HIS).
-
-
-
-generar_movimiento(AMOVER, estado(izq,LstIzq,LstDer)):-     %Devolver en AMOVER la lista de 
-    personaRapida(A, LstIzq),
-    npersonas_mas_lentas(LstIzq, RESTO, MOVER),
-    AMOVER = [A|MOVER].                                      %elementos a mover de la lista lstIzq
+    solucion_puente(ESTADO3, [ESTADO3|ACUMULADOR], HIS).
 
 generar_movimiento(AMOVER, estado(der,LstIzq,LstDer)):-     %Devolver en AMOVER la lista de 
     personaRapida(A, LstDer),
-    AMOVER = [A].                                           %elementos a mover de la lista LstDer
+    AMOVER = [A].        
+
+generar_movimiento(AMOVER, estado(izq,LstIzq,LstDer)):-     %Devolver en AMOVER la lista de 
+    /*Si se quiere mover de la izquierda a la derecha
+    se revisa si a la izquierda ya hay una persona rapida
+    para pasar a npersonas lentas y asi reducir el tiempo total*/
+    LstDer \= [],                                           %debe haber al menos una persona en la lista derecha
+    personaRapida(PersonaIzq, LstIzq),
+    personaRapida(PersonaDer, LstDer),
+    persona(PersonaIzq, PerIzqNum),
+    persona(PersonaDer, PerDerNum),
+    PerDerNum < PerIzqNum,
+    personas_a_la_vez(N),              
+    npersonas_lentas(N ,LstIzq, RESTO, AMOVER).            %elementos a mover de la lista lstIzq
+
+
+generar_movimiento(AMOVER, estado(izq,LstIzq,LstDer)):-     %Devolver en AMOVER la lista de individuos a cruzar
+    personaRapida(A, LstIzq),                               %
+    npersonas_mas_lentas(LstIzq, RESTO, MOVER),
+    AMOVER = [A|MOVER].                                      %elementos a mover de la lista lstIzq                                   %elementos a mover de la lista LstDer
+
+generar_movimiento(AMOVER, estado(izq,LstIzq,LstDer)).
+
 
 realizarMovimiento(AMOVER, estado(izq, LstIzq, LstDer),NEWESTADO):-
     selectList(LstIzq,AMOVER,LstIzqRESTO),
