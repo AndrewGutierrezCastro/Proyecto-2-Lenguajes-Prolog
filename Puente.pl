@@ -124,6 +124,7 @@ persona(dora, 10).
 persona(emilio, 15).
 
 personas_a_la_vez(2).
+tiempo_cruzar(8).
 listaPersonas([alberto,beatriz,carlos]).
 /*Selecciona de la lista las persona mas rapida en cruzarlo*/
 personaRapida(R, [X|XS]):-
@@ -247,20 +248,25 @@ insertList([], RESULTADO, RESULTADO).
 
 problema_puente_solucion(Historial):-
     listaPersonas(L),
+    tiempo_cruzar(N),
     R=[],
     ESTADO = estado(izq, L, R), 
-    solucion_puente(ESTADO,[ESTADO],Historial).
+    solucion_puente(ESTADO,[ESTADO],Historial, N).
 
-solucion_puente(estado(der,[],[Lst|Der]), ACUMULADOR, RESULTADO):-
+solucion_puente(estado(der,[],[Lst|Der]), ACUMULADOR, RESULTADO, N):-
     reverse(ACUMULADOR,RESULTADO).
 
-solucion_puente(estado(LADO,LstIzq,LstDer),ACUMULADOR, HIS):-
+solucion_puente(estado(LADO,LstIzq,LstDer),ACUMULADOR, HIS, N):-
     LstIzq \= [],
     generar_movimiento(AMOVER, estado(LADO,LstIzq,LstDer)), %AMOVER es la lista de lo que voy a mover tomado de la lista izq
+    selectMax(PersonaMasLenta,AMOVER),
+    persona(PersonaMasLenta, ValPerMasLenta),
+    N1 is N - ValPerMasLenta,
+    %N1 > 0,
     realizarMovimiento(AMOVER, estado(LADO,LstIzq,LstDer),ESTADO2), %hace el movimiento 
     cruzarPuente(ESTADO2, ESTADO3),
     ESTADO3 = estado(_,L,R),
-    solucion_puente(ESTADO3, [ESTADO3|ACUMULADOR], HIS).
+    solucion_puente(ESTADO3, [ESTADO3|ACUMULADOR], HIS, N1).
 
 generar_movimiento(AMOVER, estado(der,LstIzq,LstDer)):-     %Devolver en AMOVER la lista de 
     personaRapida(A, LstDer),
