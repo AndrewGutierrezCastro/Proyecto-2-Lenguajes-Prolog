@@ -69,18 +69,18 @@ test_hill_climb(Problem,Moves) :-
 
 
 
-   initial_state(puente,estado(izq,[alberto,beatriz,carlos,dora,emilio],[],N)):-
+initial_state(puente,estado(izq,[alberto,beatriz,carlos,dora,emilio],[],N)):-
     tiempo_cruzar(N).
 
 final_state(estado(der,[],[alberto,beatriz,carlos,dora,emilio],_)).
 
-value(estado(_,LstDer,LstIzq,N),Value):-
+value(estado(_,LstIzq,LstDer,N),Value):-
     personaRapida(P, LstIzq),
     selectMax(PerLenta, LstIzq),
     persona(P, ValPerRapid),
     persona(PerLenta, ValPerLen),
     length(LstIzq, LargoListaIzq),
-    Value is (ValPerLen - ValPerRapid) + LargoListaIzq.
+    Value is (ValPerLen - ValPerRapid) - LargoListaIzq.
 
 legal(estado(_,_,_,N)):-
     N >= 0.
