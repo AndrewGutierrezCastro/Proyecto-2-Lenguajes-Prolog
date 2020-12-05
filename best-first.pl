@@ -1,5 +1,5 @@
 /*
- * solve_best/3 usa búsqueda por anchura
+ * solve_best/3 usa bï¿½squeda por anchura
  *   El primer elemento es una lista de puntos que deben ser explorados.
  *   Esta lista es conocida como la frontera (Frontier).
  *
@@ -9,35 +9,71 @@
  *   El tercer elemento de solve_best/3 la secuencia de movidas requeridas para
  *   alcanzar un estado final deseado a partir de Point.
  *
- *   Cada punto de exploración en la frontera tiene la forma
+ *   Cada punto de exploraciï¿½n en la frontera tiene la forma
  *       state(Estado, Ruta, Valor)
- *   Dónde
- *       Estado es la descripción del estado en que se encuentra la
- *              resolución del problema independientemente del mecanismo
- *              de búsqueda. Esto es, es el mismo tipo de estado usado en
- *              búsquedas como depth-first o hill-climbing.
+ *   Dï¿½nde
+ *       Estado es la descripciï¿½n del estado en que se encuentra la
+ *              resoluciï¿½n del problema independientemente del mecanismo
+ *              de bï¿½squeda. Esto es, es el mismo tipo de estado usado en
+ *              bï¿½squedas como depth-first o hill-climbing.
  *       Ruta es la secuencia de movidas que se requieren para llegar del
  *              estado incial a Estado.
- *       Valor es el estimado heurístico de cuán bueno es este estado para
+ *       Valor es el estimado heurï¿½stico de cuï¿½n bueno es este estado para
  *              alcanzar el estado final.
  *   La lista de puntos se ecuentra ordenada en forma decreciente por Valor.
  */
 
  /*
   * Si el mejor punto en la frontera corresponde a un estado final,
-  * no hay que buscar más.
+  * no hay que buscar mï¿½s.
   * Se obtiene la secuencia de movidas que llevan del estado inicial a este
   * estado final simplemente revirtiendo el orden de movidas encontradas en
   * la ruta correspondiente a este estado.
   */
+testing(Moves1):-
+  initial_state(puente,ESTADO), 
+  value(ESTADO, Value),
+  test([punto(estado(izq,[alberto,carlos],[beatriz],18),[],2)],[estado(izq,[alberto,carlos],[beatriz],18)],Moves1).
+
+
+test([punto(State,Path,_)|History],_,Path):-
+  /*write(State),write(" Path"),
+  write(Path),write(" History"),
+  write(History),nl,*/
+  final_state(State).
+
+
+
+test([punto(State,Path,_)|Frontier],History,Moves1):-
+  findall(M,move(State,M),Moves), 
+  updates(Moves,Path, State, Estados),
+  legals(Estados, Estados1),
+  sort(Estados1, Estados2), 
+  evaluates(Estados2, Values),
+  
+  inserts(Values,Frontier,Frontier1),
+  test(Frontier1,[State|History],Moves1).
+
+/*
+ * Inicializa un problema y lo resuelve.
+ *   Problem: nombre del problema.
+ *   Moves: movidas requeridas para resolver el problema.
+ */
+test_best_search(Problem,Moves) :-
+  initial_state(Problem,State),   % obtener un Estado inicial dado Problema
+  value(State,Value),             % calcula el valor heurï¿½stico del estado incial
+  solve_best([punto(State,[],Value)],[State],Moves). % inicializa frontera e historial,
+                                                     % inicia resoluciï¿½n
+
+
 solve_best([punto(State,Path,_)|_],_,Moves) :-
     final_state(State),reverse(Path,Moves).
 
 /*
  * Si el mejor punto en la frontera no corresponde a un estado final:
  *     * se generan todas las movidas posibles a partir del estado de ese punto
- *     * se obtienen los nuevos estados que se alcanzarían con esas movidas
- *     * se calcularían los valores heurísticos de los nuevos estados
+ *     * se obtienen los nuevos estados que se alcanzarï¿½an con esas movidas
+ *     * se calcularï¿½an los valores heurï¿½sticos de los nuevos estados
  *     * se introducen los nuevos estados como nuevo puntos en la frontera
  *     * se elimina el mejor punto de la frontera y se incluye en el historial.
  */
@@ -46,8 +82,8 @@ solve_best([punto(State,Path,_)|Frontier],History,FinalPath) :-
     findall(M,move(State,M),Moves),     % obtiene movidas del mejor estado
     updates(Moves,Path,State,States),   % obtiene los nuevos estados usando movidas
     legals(States,States1),             % escoge los nuevos estados que son legales
-    news(States1,History,States2),      % elimina nuevos estados ya incluidos en historial
-    evaluates(States2,Values),          % calcula valores heurísticos de los nuevos estados
+    sort(States1,States2),      % elimina nuevos estados ya incluidos en historial
+    evaluates(States2,Values),          % calcula valores heurï¿½sticos de los nuevos estados
     inserts(Values,Frontier,Frontier1), % inserta en orden los nuevos puntos en la frontera
     solve_best(Frontier1,[State|History],FinalPath). % continuar a partir de nueva frontera
 
@@ -62,7 +98,7 @@ solve_best([punto(State,Path,_)|Frontier],History,FinalPath) :-
  *   States es una lista de pares (NuevoEstado, NuevaRuta).
  */
 
-updates([M|Ms],Path,S,[(S1,[M|Path])|Ss]) :-
+updates( [M|Ms], Path, S, [(S1,[M|Path])|Ss]) :-
     update(S,M,S1),         % obtiene el estado al que se llega por una movida
     updates(Ms,Path,S,Ss).  % procesa recursivamente las siguientes movidas
 updates([],_,_,[]).
@@ -109,14 +145,14 @@ news([],_,[]).
 
 /*
  * evaluates(States,Values)
- *   Calcula el valor heurístico de los estados en la lista States.
+ *   Calcula el valor heurï¿½stico de los estados en la lista States.
  *   Values is la lista resultante con los estados junto con sus valores.
  *   La lista State consiste de pares (Estado,Ruta).
  *   La lista Values consiste de estructuras punto(Estado,Ruta,Valor).
  */
 
 evaluates([(S,P)|States],[punto(S,P,V)|Values]) :-
-    value(S,V),                % calcula valor heurístico del estado S
+    value(S,V),                % calcula valor heurï¿½stico del estado S
     evaluates(States,Values).  % procesa resto de estados
 evaluates([],[]).
 
@@ -126,20 +162,20 @@ evaluates([],[]).
  *   Frontier1 es el resultado de insertar una lista de puntos (Points)
  *   en una frontera anterior (Frontier).
  *   Los puntos son insertados preservando el orden descendente en el
- *   valor heurístico.
+ *   valor heurï¿½stico.
  */
 
 inserts([Punto|Puntos],Frontier,Frontier1) :-
     insertPoint(Punto,Frontier,Frontier0),  % inserta primer punto
-    inserts(Puntos,Frontier0,Frontier1).    % recursivamente inserta los demás puntos
+    inserts(Puntos,Frontier0,Frontier1).    % recursivamente inserta los demï¿½s puntos
 inserts([],Frontier,Frontier).
 
 
 /*
  * insertPoint(Point,Frontier,Frontier1)
  *   Frontier1 es el resultado de insertar el punto Points en
- *   su posición correcta dentro de Frontier de acuerdo con el orden
- *   del valor heurístico.
+ *   su posiciï¿½n correcta dentro de Frontier de acuerdo con el orden
+ *   del valor heurï¿½stico.
  *
  */
 insertPoint(Point,[],[Point]).
@@ -162,21 +198,21 @@ insertPoint(Point,[Point1|Points],[Point1|Points1]) :-
     insertPoint(Point,Points,Points1).
 
 % nuevo punto no es igual a primero de la frontera pero tiene
-% el mismo valor heurístico, se pone al nuevo punto como primero
+% el mismo valor heurï¿½stico, se pone al nuevo punto como primero
 % en la nueva frontera
 insertPoint(Point,[Point1|Points],[Point,Point1|Points]) :-
     same(Point,Point1).
 
 
 /*
- * relaciones de comparación de puntos
+ * relaciones de comparaciï¿½n de puntos
  *
  * no se puede dar el caso de que dos puntos tengan el mismo estado
  * pero diferente valor
  */
 
 % dos puntos son iguales si contienen el mismo estado y tienen el mismo valor;
-% se ignoran las rutas: no importa cómo se haya llegado al mismo estado
+% se ignoran las rutas: no importa cï¿½mo se haya llegado al mismo estado
 equals(punto(S,_,V),punto(S,_,V)).
 
 % un punto es menor que otro, si contienen diferentes estados y si el
@@ -189,75 +225,217 @@ less_than(punto(S1,_,V1),punto(S2,_,V2)) :- S1 \= S2, V1 < V2.
 same(punto(S1,_,V1),punto(S2,_,V2)) :- S1 \= S2, V1 = V2.
 
 
+initial_state(puente,estado(izq,[alberto,beatriz,carlos],[],N)):-
+    tiempo_cruzar(N).
+
+final_state(estado(der,[],[alberto,beatriz,carlos],_)).
+
+value(estado(_,[],_,N), N).
+
+
+value(estado(_,LstIzq,LstDer,N),Value):-
+    personaRapida(P, LstIzq),
+    selectMax(PerLenta, LstIzq),
+    persona(P, ValPerRapid),
+    persona(PerLenta, ValPerLen),
+    length(LstIzq, LargoListaIzq),
+    Value is (ValPerLen - ValPerRapid) - LargoListaIzq.
+
+legal(estado(_,_,_,N)):-
+    N >= 0.
+
+update(estado(LADO,LstIzq,LstDer,N), Movida, NuevoEstado):-
+    selectMax(PersonaMasLenta,Movida),
+    persona(PersonaMasLenta, ValPerMasLenta),
+    N1 is N - ValPerMasLenta,
+    realizarMovimiento(Movida, estado(LADO,LstIzq,LstDer,N1),ESTADO2), %hace el movimiento 
+    cruzarPuente(ESTADO2, NuevoEstado).
+    
+
+move(estado(der,LstIzq,LstDer,N),AMOVER):-     %Devolver en AMOVER la lista de 
+    personaRapida(A, LstDer),
+    AMOVER = [A].        
+
+  move(estado(_,[],LstDer,_),[]).
+
+move(estado(izq,LstIzq,LstDer,_),AMOVER):-
+    findall(MOVIDAS, selectPersonas(MOVIDAS, LstIzq), SOLREPS),
+    sort(SOLREPS,SOLsinREP),
+    member(AMOVER, SOLsinREP).
+    
+
+%move(estado(izq,LstIzq,LstDer,_), AMOVER):-     %Devolver en AMOVER la lista de 
+    /*Si se quiere mover de la izquierda a la derecha
+    se revisa si a la izquierda ya hay una persona rapida
+    para pasar a npersonas lentas y asi reducir el tiempo total*/
+    /*LstDer \= [],                                           %debe haber al menos una persona en la lista derecha
+    personaRapida(PersonaIzq, LstIzq),
+    personaRapida(PersonaDer, LstDer),
+    persona(PersonaIzq, PerIzqNum),
+    persona(PersonaDer, PerDerNum),
+    PerDerNum < PerIzqNum,
+    personas_a_la_vez(N),              
+    npersonas_lentas(N ,LstIzq, RESTO, AMOVER).*/     %elementos a mover de la lista lstIzq
+                                                    %elementos a mover de la lista lstIzq                                  
+                                                     %elementos a mover de la lista LstDer
+
+/*move(estado(izq,LstIzq,LstDer,_), AMOVER):-
+    length(LstIzq, LstLength),
+    LstLength > 2,
+    select(PersonaRapida, LstIzq, LstIzqNueva),
+    findall(MOVIDAS, selectPersonas(MOVIDAS, LstIzqNueva), SOLREPS),
+    sort(SOLREPS,SOLsinREP),
+    member(AMOVER, SOLsinREP). */
+/*
+move(estado(izq,LstIzq,LstDer,_),AMOVER):-     %Devolver en AMOVER la lista de individuos a cruzar
+    personaRapida(A, LstIzq),                               %
+    npersonas_mas_lentas(LstIzq, RESTO, MOVER),
+    AMOVER = [A|MOVER].  
+*/
+
+realizarMovimiento(AMOVER, estado(izq, LstIzq, LstDer, N),NEWESTADO):-
+    selectList(LstIzq,AMOVER,LstIzqRESTO),
+    insertList(AMOVER,LstDer,LstDerRESULTADO),
+    NEWESTADO = estado(izq, LstIzqRESTO, LstDerRESULTADO, N).
+
+realizarMovimiento(AMOVER, estado(der, LstIzq, LstDer, N),NEWESTADO):-
+    selectList(LstDer,AMOVER,LstDerRESTO),
+    insertList(AMOVER,LstIzq, LstIzqRESULTADO),
+    NEWESTADO = estado(der, LstIzqRESULTADO, LstDerRESTO, N).
+
+cruzarPuente(estado(izq,LstIzq,LstDer, N), ESTADO2):-
+    ESTADO2 = estado(der, LstIzq, LstDer, N).
+cruzarPuente(estado(der,LstIzq,LstDer, N), ESTADO2):-
+    ESTADO2 = estado(izq, LstIzq, LstDer, N).
+
+persona(alberto, 1).
+persona(beatriz, 2).
+persona(carlos, 5).
+persona(dora, 10).
+persona(emilio, 15).
+
+personas_a_la_vez(2).
+tiempo_cruzar(21).
+listaPersonas(Nombres):-
+    findall(Nombre, persona(Nombre,_),Nombres).
+
+/*Selecciona de la lista las persona mas rapida en cruzarlo*/
+personaRapida(R, [X|XS]):-
+  min(X,Y, R),
+  personaRapida(Y, XS).
+personaRapida(P,[X]):-
+  P = X.
+/*Selecciona la persona con el minimo tiempo de 
+  cruce del puente*/
+min(X,Y,V2):-
+  persona(X,X1),
+  persona(Y,Y1),
+  X1 >= Y1,
+  V2 = Y.
+
+min(X,Y,V2):-
+  persona(X,X1),
+  persona(Y,Y1),
+  X1 < Y1,
+  V2 = X.
+
+max(X,Y,V2):-
+  persona(X,X1),
+  persona(Y,Y1),
+  X1 >= Y1,
+  V2 = X.
+
+max(X,Y,V2):-
+  persona(X,X1),
+  persona(Y,Y1),
+  X1 < Y1,
+  V2 = Y.
+
+
+/*Selecciona el maximo de una lista de personas*/
+selectMax(P,[X|XS]):-
+  max(X,P1,P),
+  selectMax(P1, XS).
+selectMax(P,[X]):-
+  P = X.
+
+/*Selecciona las n personas mas lentas de la lista X de perosnas*/
+% npersonas_mas_lentas(2,[alberto,beatriz,carlos,dora,emilio],[],R).
+npersonas_mas_lentas(LISTA,RESTO,RESULTADO):-
+  personas_a_la_vez(N),
+  N1 is N - 1,
+  npersonas_mas_lentas(N1,LISTA,[],RESULTADO),
+  selectList(LISTA,RESULTADO,RESTO).
+
+npersonas_lentas(N,LISTA,RESTO,RESULTADO):-
+  npersonas_mas_lentas(N,LISTA,[],RESULTADO),
+  selectList(LISTA,RESULTADO,RESTO).
+
+npersonas_mas_lentas(0,_,A,A).
+
+npersonas_mas_lentas(_,[],A,A).
+
+npersonas_mas_lentas(N,LISTA,Acumulada,R):-
+  N > 0,
+  selectMax(Persona,LISTA),   %seleccionar la personas con max duracion
+  select(Persona, LISTA, L),  %quitar esa persona de la lista, L es la nueva lista sin el elemento P
+  insert(Persona, Acumulada, Acumulada1), %R1 es la lista R con el valor P insertado
+  N1 is N - 1, 
+  npersonas_mas_lentas(N1, L, Acumulada1, R).
+
+
+selectPersonas(AMOVER, LISTA):-
+  personas_a_la_vez(N),
+  selectPersonas(N, LISTA, [], AMOVER).
+
+selectPersonas(N, LISTA, Acumulada, Respuesta):-
+  N > 0,
+  N1 is N - 1,
+  member(Persona,LISTA),
+  select(Persona, LISTA, L),  %quitar esa persona de la lista, L es la nueva lista sin el elemento P
+  insert(Persona, Acumulada, Acumulada1), %R1 es la lista R con el valor P insertado
+  selectPersonas(N1, L, Acumulada1, Respuesta).
+
+selectPersonas(0,_,R,R).
+selectPersonas(_,[],R,R).
+/*
+* insert(ElementoInsertado, ListaVieja, ListaNueva)
+*
+* Inserta en orden una de las cosas en una lista.
+* La relaciï¿½n precedes/2 establece el orden de las cosas: z < g < m.
+*/
+insert(X,[Y|Ys],[X,Y|Ys]):-precedes(X,Y).   % Elemento va al inicio
+insert(X,[Y|Ys],[Y|Zs]):-precedes(Y,X),insert(X,Ys,Zs).  % Insertar mï¿½s adentro.
+insert(X,[],[X]).                   % Insertar como ï¿½nico elemento.
+
+
+
+% Caso determinï¿½stico
+precedes(X, Y):- 
+  persona(X, _),
+  persona(Y, _),
+  X@<Y.
 
 /*
- * Inicializa un problema y lo resuelve.
- *   Problem: nombre del problema.
- *   Moves: movidas requeridas para resolver el problema.
- */
-test_best_search(Problem,Moves) :-
-   initial_state(Problem,State),   % obtener un Estado inicial dado Problema
-   value(State,Value),             % calcula el valor heurístico del estado incial
-   solve_best([punto(State,[],Value)],[State],Moves). % inicializa frontera e historial,
-                                                      % inicia resolución
+* select(Elemento, ListaQueContieneElemento, ListaSinElemento)
+*
+* Extrae no determisticamente un elemento de una lista que lo contiene
+* y obtiene la lista sin ese elemento.
+*/
+select(X,[X|Xs],Xs).                          % Extrae primer elemento.
+select(X,[Y|Ys],[Y|Zs]):-select(X,Ys,Zs).     % Extrae elemento de mï¿½s adentro.
 
+selectList(LISTA,[X|XS],R):-    %LISTA DONDE SE VAN A EXTRAER
+  select(X, LISTA, RESTO),     %X|XS ES LA LISTA DE ELEMENTOS A EXTRAER
+  selectList(RESTO, XS, R).
 
-% === Relaciones que definen el problema zgm     === %
-% === Son las mismas incluidas en depth-first.pl === %
+selectList(R,[],R).
 
-initial_state(zgm,zgm(izq,[zorra,gallina,maiz],[])).
+insertList([A|MOVER], LISTA, RESULTADO):-
+  insert(A, LISTA, RESULTADO1),
+  insertList(MOVER, RESULTADO1, RESULTADO).
 
-final_state(zgm(der,[],[zorra,gallina,maiz])).
+insertList([], RESULTADO, RESULTADO).
 
-move(zgm(izq,I,_),Carga):-member(Carga,I).
-move(zgm(der,_,D),Carga):-member(Carga,D).
-move(zgm(_,_,_),solo).
-
-update(zgm(B,I,D),Carga,zgm(B1,I1,D1)):-
-update_Bote(B,B1),
-update_margenes(Carga,B,I,D,I1,D1).
-
-update_Bote(izq,der).
-update_Bote(der,izq).
-
-update_margenes(solo,_,I,D,I,D).
-update_margenes(Carga,izq,I,D,I1,D1):-
-      select(Carga,I,I1),
-      insert(Carga,D,D1).
-update_margenes(Carga,der,I,D,I1,D1):-
-      select(Carga,D,D1),
-      insert(Carga,I,I1).
-
-insert(X,[Y|Ys],[X,Y|Ys]):-precedes(X,Y).
-insert(X,[Y|Ys],[Y|Zs]):-precedes(Y,X),insert(X,Ys,Zs).
-insert(X,[],[X]).
-
-select(X,[X|Xs],Xs).
-select(X,[Y|Ys],[Y|Zs]):-select(X,Ys,Zs).
-
-%precedes(zorra,_).
-%precedes(_,maiz).
-precedes(zorra,gallina).
-precedes(zorra,maiz).
-precedes(gallina,maiz).
-
-
-legal(zgm(izq,_,D)):-not(ilegal(D)).
-legal(zgm(der,I,_)):-not(ilegal(I)).
-
-ilegal(L):-member(zorra,L),member(gallina,L).
-ilegal(L):-member(gallina,L),member(maiz,L).
-
-% === Fin de las relaciones usadas por depth-first.pl ==%
-
-
-% === Relación adicional requerida por best_first.pl para resolver zgm. === %
-% === Value/2 es una heurísica que da valores más altos conforme     === %
-% === haya más cosas en la rivera derecha.                           === %
-
-value(zgm(_,_,[]),0).
-value(zgm(_,_,[_]),1).
-value(zgm(_,_,[_,_]),2).
-value(zgm(_,_,[_,_,_]),3).
 
 
