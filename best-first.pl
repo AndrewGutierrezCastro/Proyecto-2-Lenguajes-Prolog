@@ -82,7 +82,7 @@ solve_best([punto(State,Path,_)|Frontier],History,FinalPath) :-
     findall(M,move(State,M),Moves),     % obtiene movidas del mejor estado
     updates(Moves,Path,State,States),   % obtiene los nuevos estados usando movidas
     legals(States,States1),             % escoge los nuevos estados que son legales
-    sort(States1,States2),      % elimina nuevos estados ya incluidos en historial
+    news(States1,History,States2),      % elimina nuevos estados ya incluidos en historial
     evaluates(States2,Values),          % calcula valores heur�sticos de los nuevos estados
     inserts(Values,Frontier,Frontier1), % inserta en orden los nuevos puntos en la frontera
     solve_best(Frontier1,[State|History],FinalPath). % continuar a partir de nueva frontera
@@ -225,10 +225,10 @@ less_than(punto(S1,_,V1),punto(S2,_,V2)) :- S1 \= S2, V1 < V2.
 same(punto(S1,_,V1),punto(S2,_,V2)) :- S1 \= S2, V1 = V2.
 
 
-initial_state(puente,estado(izq,[alberto,beatriz,carlos],[],N)):-
+initial_state(puente,estado(izq,[alberto,beatriz,carlos,dora,emilio],[],N)):-
     tiempo_cruzar(N).
 
-final_state(estado(der,[],[alberto,beatriz,carlos],_)).
+final_state(estado(der,[],[alberto,beatriz,carlos,dora,emilio],_)).
 
 value(estado(_,[],_,N), N).
 
@@ -314,7 +314,7 @@ persona(carlos, 5).
 persona(dora, 10).
 persona(emilio, 15).
 
-personas_a_la_vez(2).
+personas_a_la_vez(3).
 tiempo_cruzar(21).
 listaPersonas(Nombres):-
     findall(Nombre, persona(Nombre,_),Nombres).
