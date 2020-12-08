@@ -7,6 +7,7 @@
 
 % Si el Estado actual es un estado final, no hay que moverse.
 solve_hill_climb(State,_,[]) :-
+    %write(State),nl,
     final_state(State).
 
 /*
@@ -74,6 +75,8 @@ initial_state(puente,estado(izq,[alberto,beatriz,carlos,dora,emilio],[],N)):-
 
 final_state(estado(der,[],[alberto,beatriz,carlos,dora,emilio],_)).
 
+value(estado(_,[],_,N), N).
+
 value(estado(_,LstIzq,LstDer,N),Value):-
     personaRapida(P, LstIzq),
     selectMax(PerLenta, LstIzq),
@@ -82,7 +85,8 @@ value(estado(_,LstIzq,LstDer,N),Value):-
     length(LstIzq, LargoListaIzq),
     Value is (ValPerLen - ValPerRapid) - LargoListaIzq.
 
-legal(estado(_,_,_,N)):-
+legal(estado(Lado,LstIzq,LstDer,N)):-
+    %write(estado(Lado,LstIzq,LstDer,N)),nl,
     N >= 0.
 
 update(estado(LADO,LstIzq,LstDer,N), Movida, NuevoEstado):-
@@ -152,8 +156,8 @@ persona(carlos, 5).
 persona(dora, 10).
 persona(emilio, 15).
 
-personas_a_la_vez(3).
-tiempo_cruzar(21).
+personas_a_la_vez(2).
+tiempo_cruzar(28).
 listaPersonas(Nombres):-
     findall(Nombre, persona(Nombre,_),Nombres).
 
